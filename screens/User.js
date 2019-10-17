@@ -3,11 +3,11 @@ import { Text, View, Button, Image } from 'react-native';
 import { connect } from 'react-redux';
 import { auth, db } from '../utils/firebase';
 import styles from '../styles/main';
+import { signOut } from '../redux';
 
 class User extends Component {
   constructor(props) {
     super(props);
-    this.logout = this.logout.bind(this);
     this.sendEmailVerification = this.sendEmailVerification.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
     const { user } = props;
@@ -33,15 +33,6 @@ class User extends Component {
         user: nextProps.user
       });
     }
-  }
-
-  logout() {
-    auth.signOut()
-      .catch( (error)=>{
-        this.setState({
-          error: error.message
-        });
-      });
   }
 
   sendEmailVerification() {
@@ -75,9 +66,10 @@ class User extends Component {
   // }
 
   render() {
-    const { error, posts, user  } = this.state;
+    const { signOut, error } = this.props;
+    const { posts, user } = this.state;
     const isEmailVerified = user && user.emailVerified;
-    console.log(posts);
+    console.log(user, posts);
     return (
       <View style={styles.container}>
         <Image
@@ -111,7 +103,7 @@ class User extends Component {
         />
         <Button
           title='sign out'
-          onPress={this.logout}
+          onPress={signOut}
         />
         {posts ? posts.map((post) => (
           <Text key={post.id}>
@@ -125,10 +117,13 @@ class User extends Component {
 }
 
 const mapStateToProps = state => ({
-  user: state.user.data
+  user: state.user.data,
+  error: state.user.signOutError
 });
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  signOut
+};
 
 export default connect(
   mapStateToProps,

@@ -1,26 +1,21 @@
 import React, { Component } from 'react';
-import * as Google from 'expo-google-app-auth';
 import { Text, View, Button, TextInput } from 'react-native';
 import { GOOGLE_AUTH_IOS_CLIENT_ID } from 'react-native-dotenv';
 import { connect } from 'react-redux'
-import { auth } from '../utils/firebase';
 import styles from '../styles/main';
-import { authUser } from '../redux';
+import { authUser, signIn, authGoogle } from '../redux';
 
 class Login extends Component {
   constructor(props) {
     super(props);
     this.onChangeEmail = this.onChangeEmail.bind(this);
     this.onChangePassword = this.onChangePassword.bind(this);
-    this.login = this.login.bind(this);
-    this.logout = this.logout.bind(this);
+    this.signIn = this.signIn.bind(this);
     this.auth = this.auth.bind(this);
     this.authGoogle = this.authGoogle.bind(this);
     this.state = {
       email: null,
-      password: null,
-      accessToken: null,
-      error: null
+      password: null
     };
   }
 
@@ -32,73 +27,26 @@ class Login extends Component {
     this.setState({ password });
   }
 
-  login() {
-    if (this.state.error) {
-      this.setState({ error: null });
-    }
+  signIn() {
+    const { signIn } = this.props;
     const { email, password } = this.state;
-    auth.signInWithEmailAndPassword(email, password)
-      .catch(error => {
-        console.log('firebase err:', error.message);
-        this.setState({
-          error: error.message
-        });
-      });
-  }
-
-  logout() {
-    auth.signOut()
-      .catch( (error)=>{
-        this.setState({
-          error: error.message
-        });
-      });
+    signIn(email, password);
   }
 
   auth() {
     const { authUser } = this.props;
-    const { email, password, error } = this.state;
-    if (error) {
-      this.setState({ error: null });
-    }
+    const { email, password } = this.state;
     authUser(email, password);
   }
 
-  async authGoogle() {
-    if (this.state.error) {
-      this.setState({ error: null });
-    }
-    try {
-      const result = await Google.logInAsync({
-        behavior: 'web',
-        iosClientId: GOOGLE_AUTH_IOS_CLIENT_ID,
-        scopes: ['profile', 'email']
-      });
-
-      if (result.type === 'success') {
-        const { idToken, accessToken, user } = result;
-        this.setState({ accessToken });
-        const credential = firebase.auth.GoogleAuthProvider.credential(idToken, accessToken);
-        auth.signInWithCredential(credential)
-          .catch(error => {
-            this.setState({
-              error: error.message
-            });
-          });
-      } else {
-        this.setState({
-          error: result.type
-        });
-      }
-    } catch (error) {
-      this.setState({
-        error: error.message
-      });
-    }
+  authGoogle() {
+    const { authGoogle } = this.props;
+    authGoogle();
   }
 
   render() {
-    const { email, password, error } = this.state;
+    const { error } = this.props;
+    const { email, password } = this.state;
     return (
       <View style={styles.container}>
         <View>
@@ -128,7 +76,7 @@ class Login extends Component {
           />
           <Button
             title='ok'
-            onPress={this.login}
+            onPress={this.signIn}
           />
         </View>
         <View>
@@ -172,11 +120,14 @@ class Login extends Component {
 }
 
 const mapStateToProps = state => ({
-  user: state.user.data
+  user: state.user.data,
+  error: state.user.authError
 });
 
 const mapDispatchToProps = {
-  authUser
+  authUser,
+  signIn,
+  authGoogle
 };
 
 export default connect(
