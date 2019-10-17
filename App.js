@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import './utils/firebase';
+import { ThemeProvider } from 'react-native-elements';
 import { createAppContainer, NavigationActions } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { connect, Provider } from 'react-redux'
+import './utils/firebase';
 import { store } from './redux'
 
 // screens
@@ -16,10 +17,17 @@ const mapStateToProps = state => ({
 const AppNavigator = createAppContainer(createStackNavigator(
   {
     Login: {
-      screen: Login
+      screen: Login,
+      navigationOptions: {
+        header: null
+      }
     },
     User: {
-      screen: User
+      screen: User,
+      navigationOptions:  {
+        title: 'User page',
+        headerLeft: null
+      }
     }
   }
 ));
@@ -29,7 +37,7 @@ const AppContainer = connect(mapStateToProps, {})(
     componentWillReceiveProps(nextProps) {
       const { user } = this.props;
       if (user && !nextProps.user) {
-        this.navigate('Login')
+        this.navigate('Login');
       } else if (!user && nextProps.user) {
         this.navigate('User');
       }
@@ -57,7 +65,9 @@ export default class App extends Component {
   render() {
     return (
       <Provider store={store}>
-        <AppContainer />
+        <ThemeProvider>
+          <AppContainer />
+        </ThemeProvider>
       </Provider>
     );
   }

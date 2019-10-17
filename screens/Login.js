@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Text, View, Button, TextInput } from 'react-native';
+import { TouchableWithoutFeedback, Text, View, Keyboard } from 'react-native';
+import { Button, Icon, Input } from 'react-native-elements';
 import { GOOGLE_AUTH_IOS_CLIENT_ID } from 'react-native-dotenv';
 import { connect } from 'react-redux'
 import styles from '../styles/main';
@@ -48,73 +49,116 @@ class Login extends Component {
     const { error } = this.props;
     const { email, password } = this.state;
     return (
-      <View style={styles.container}>
-        <View>
-          <Text>login</Text>
-          <TextInput
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
+        accessible={false}
+      >
+        <View style={styles.container}>
+          {error ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                width: '100%',
+                marginBottom: 32,
+                padding: 8,
+                backgroundColor: 'rgb(255, 100, 100)',
+                borderRadius: 8,
+                overflow: 'hidden'
+              }}
+            >
+              <Icon
+                name='error'
+                color='white'
+                size={16}
+                iconStyle={{
+                  marginRight: 8
+                }}
+              />
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 16
+                }}
+              >
+                {error}
+              </Text>
+            </View>
+          ) : null}
+          <View
             style={{
-              height: 40,
-              borderColor: 'gray',
-              borderWidth: 1
+              width: '100%'
             }}
-            autoCapitalize='none'
-            autoCompleteType='email'
-            value={email}
-            onChangeText={this.onChangeEmail}
-          />
-          <TextInput
-            style={{
-              height: 40,
-              borderColor: 'gray',
-              borderWidth: 1
-            }}
-            secureTextEntry={true}
-            autoCapitalize='none'
-            autoCompleteType='password'
-            value={password}
-            onChangeText={this.onChangePassword}
-          />
-          <Button
-            title='ok'
-            onPress={this.signIn}
-          />
+          >
+            <Input
+              autoCapitalize='none'
+              autoCompleteType='email'
+              leftIcon={{
+                name: 'email',
+                iconStyle: {
+                  marginLeft: 0,
+                  marginRight: 10,
+                  color: 'gray'
+                }
+              }}
+              containerStyle={{
+                paddingLeft: 0,
+                paddingRight: 0,
+                marginBottom: 32
+              }}
+              label='Your Email Address'
+              value={email}
+              placeholder='email@address.com'
+              onChangeText={this.onChangeEmail}
+            />
+            <Input
+              leftIcon={{
+                name: 'lock',
+                iconStyle: {
+                  marginLeft: 0,
+                  marginRight: 10,
+                  color: 'gray',
+                  marginHorizontal: 0,
+                  start: 0
+                }
+              }}
+              containerStyle={{
+                paddingLeft: 0,
+                paddingRight: 0,
+                paddingBottom: 32
+              }}
+              label='Password'
+              value={password}
+              placeholder='Password'
+              secureTextEntry={true}
+              autoCapitalize='none'
+              autoCompleteType='password'
+              onChangeText={this.onChangePassword}
+            />
+            <View>
+              <Button
+                title='Register'
+                style={{
+                  paddingBottom: 16
+                }}
+                onPress={this.signIn}
+                disabled={!(email && password)}
+              />
+              <Button
+                title='Login'
+                style={{
+                  paddingBottom: 16
+                }}
+                onPress={this.auth}
+                disabled={!(email && password)}
+              />
+              <Button
+                title='Start with Google'
+                onPress={this.authGoogle}
+              />
+            </View>
+          </View>
         </View>
-        <View>
-          <Text>signup</Text>
-          <TextInput
-            style={{
-              height: 40,
-              borderColor: 'gray',
-              borderWidth: 1
-            }}
-            autoCapitalize='none'
-            autoCompleteType='email'
-            value={email}
-            onChangeText={this.onChangeEmail}
-          />
-          <TextInput
-            style={{
-              height: 40,
-              borderColor: 'gray',
-              borderWidth: 1
-            }}
-            secureTextEntry={true}
-            autoCapitalize='none'
-            autoCompleteType='password'
-            value={password}
-            onChangeText={this.onChangePassword}
-          />
-          <Button
-            title='start'
-            onPress={this.auth}
-          />
-          <Button
-            title='start with google'
-            onPress={this.authGoogle}
-          />
-        </View>
-        {error ? <Text>{error}</Text> : null}
-      </View>
+      </TouchableWithoutFeedback>
     );
   }
 }

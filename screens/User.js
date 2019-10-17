@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Text, View, Button, Image } from 'react-native';
+import { Text, View, Button } from 'react-native';
+import { Avatar } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { auth, db } from '../utils/firebase';
 import styles from '../styles/main';
@@ -69,15 +70,13 @@ class User extends Component {
     const { signOut, error } = this.props;
     const { posts, user } = this.state;
     const isEmailVerified = user && user.emailVerified;
-    console.log(user, posts);
+    console.log(user);
     return (
       <View style={styles.container}>
-        <Image
-          source={{ url: user.photoUrl }}
-          style={{
-            width: 100,
-            height: 100
-          }}
+        <Avatar
+          size='large'
+          rounded
+          source={{ url: user.photoURL }}
         />
         <Text>{user.name}</Text>
         <Text>{user.email}</Text>
