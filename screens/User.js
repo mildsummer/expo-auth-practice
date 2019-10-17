@@ -1,41 +1,37 @@
 import React, { Component } from 'react';
 import { Text, View, Button, Image } from 'react-native';
+import { connect } from 'react-redux';
 import { auth, db } from '../utils/firebase';
 import styles from '../styles/main';
 
-export default class User extends Component {
+class User extends Component {
   constructor(props) {
     super(props);
-    this.onChangeEmail = this.onChangeEmail.bind(this);
-    this.onChangePassword = this.onChangePassword.bind(this);
-    this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
-    this.auth = this.auth.bind(this);
-    this.authGoogle = this.authGoogle.bind(this);
     this.sendEmailVerification = this.sendEmailVerification.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
+    const { user } = props;
+    db.collection('/posts')
+      .where('author', '==', user.uid)
+      .get()
+      .then((querySnapshot) => {
+        this.setState({ posts: querySnapshot.docs });
+      })
+      .catch((error) => {
+        this.setState({ error: error.message });
+      });
     this.state = {
-      user: auth.currentUser || null,
       error: null,
-      posts: null
+      posts: null,
+      user
     };
-    auth.onAuthStateChanged((user) => {
-      this.setState({ user: user || null });
-    });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (!prevState.user && this.state.user) {
-      db.collection('/posts')
-        .where('author', '==', this.state.user.uid)
-        .get()
-        .then((querySnapshot) => {
-          this.setState({ posts: querySnapshot.docs });
-        })
-        .catch((error) => {
-          this.setState({ error: error.message });
-        })
-      ;
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.user && nextProps.user !== this.state.user) {
+      this.setState({
+        user: nextProps.user
+      });
     }
   }
 
@@ -49,7 +45,7 @@ export default class User extends Component {
   }
 
   sendEmailVerification() {
-    const { user } = this.state;
+    const { user } = this.props;
     user.sendEmailVerification().then(() => {
       this.setState({ error: 'email sent' });
     }).catch(error => {
@@ -79,8 +75,9 @@ export default class User extends Component {
   // }
 
   render() {
-    const { user, error, posts } = this.state;
+    const { error, posts, user  } = this.state;
     const isEmailVerified = user && user.emailVerified;
+    console.log(posts);
     return (
       <View style={styles.container}>
         <Image
@@ -126,3 +123,14 @@ export default class User extends Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  user: state.user.data
+});
+
+const mapDispatchToProps = {};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(User);

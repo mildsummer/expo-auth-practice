@@ -20,6 +20,8 @@ const reducer = (state = INITIAL_STATE, action) => {
   switch (action.type) {
     case 'SUCCESS_AUTH_USER':
       return { ...state, data: action.data };
+    case 'SIGN_OUT_USER':
+      return { ...state, data: null };
     default:
       return state;
   }
@@ -32,10 +34,16 @@ export const reducers = combineReducers({
 export const store = createStore(reducers, applyMiddleware(thunk));
 
 auth.onAuthStateChanged((user) => {
-  if (!store.getState().user.data && user) {
+  const current = store.getState().user.data;
+  console.log('state changed', user);
+  if (!current && user) {
     store.dispatch({
       type: 'SUCCESS_AUTH_USER',
       data: user
+    });
+  } else if (current && !user) {
+    store.dispatch({
+      type: 'SIGN_OUT_USER'
     });
   }
 });

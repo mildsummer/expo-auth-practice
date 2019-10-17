@@ -20,9 +20,7 @@ class Login extends Component {
       email: null,
       password: null,
       accessToken: null,
-      user: auth.currentUser || null,
-      error: null,
-      posts: null
+      error: null
     };
   }
 
