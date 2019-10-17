@@ -140,15 +140,15 @@ class Login extends Component {
                 style={{
                   paddingBottom: 16
                 }}
-                onPress={this.signIn}
+                onPress={this.auth}
                 disabled={!(email && password)}
               />
               <Button
-                title='Login'
+                title='Sign In'
                 style={{
                   paddingBottom: 16
                 }}
-                onPress={this.auth}
+                onPress={this.signIn}
                 disabled={!(email && password)}
               />
               <Button

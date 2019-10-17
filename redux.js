@@ -3,6 +3,7 @@ import thunk from 'redux-thunk';
 import firebase, { auth } from './utils/firebase';
 import * as Google from 'expo-google-app-auth';
 import { GOOGLE_AUTH_IOS_CLIENT_ID } from 'react-native-dotenv';
+import {Alert} from "react-native";
 
 export const signIn = (email, password) => (dispatch) => {
   dispatch({
@@ -74,6 +75,52 @@ export const signOut = () => (dispatch) => {
         message
       });
     });
+};
+
+export const sendPasswordResetEmail = () => (dispatch) => {
+  const email = store.getState().user.data && store.getState().user.data.email;
+  if (email) {
+    Alert.alert(
+      'Reset Password',
+      'We will email you instructions on how to reset your password.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'OK',
+          onPress: () => {
+            auth.sendPasswordResetEmail(email).then(() => {
+              Alert.alert('The email has been sent to your account.');
+            }).catch(function({ message }) {
+              Alert.alert(message);
+            });
+          }
+        },
+      ]
+    );
+  }
+};
+
+export const verifyEmail = () => (dispatch) => {
+  const user = store.getState().user.data;
+  if (user) {
+    Alert.alert(
+      'Email verification is required',
+      'We will send a verification link to your email account.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'OK',
+          onPress: () => {
+            user.sendEmailVerification().then(() => {
+              Alert.alert('The email has been sent.');
+            }).catch(function({ message }) {
+              Alert.alert(message);
+            });
+          }
+        },
+      ]
+    );
+  }
 };
 
 const INITIAL_STATE = {

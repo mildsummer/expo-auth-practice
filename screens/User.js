@@ -1,31 +1,36 @@
 import React, { Component } from 'react';
-import { Text, View, Button } from 'react-native';
-import { Avatar } from 'react-native-elements';
+import { Text, View } from 'react-native';
+import { Button, Avatar } from 'react-native-elements';
 import { connect } from 'react-redux';
-import { auth, db } from '../utils/firebase';
+// import { db } from '../utils/firebase';
 import styles from '../styles/main';
-import { signOut } from '../redux';
+import { signOut, sendPasswordResetEmail, verifyEmail } from '../redux';
 
 class User extends Component {
   constructor(props) {
     super(props);
-    this.sendEmailVerification = this.sendEmailVerification.bind(this);
-    this.resetPassword = this.resetPassword.bind(this);
     const { user } = props;
-    db.collection('/posts')
-      .where('author', '==', user.uid)
-      .get()
-      .then((querySnapshot) => {
-        this.setState({ posts: querySnapshot.docs });
-      })
-      .catch((error) => {
-        this.setState({ error: error.message });
-      });
+    // db.collection('/posts')
+    //   .where('author', '==', user.uid)
+    //   .get()
+    //   .then((querySnapshot) => {
+    //     this.setState({ posts: querySnapshot.docs });
+    //   })
+    //   .catch((error) => {
+    //     this.setState({ error: error.message });
+    //   });
     this.state = {
       error: null,
       posts: null,
       user
     };
+  }
+
+  componentDidMount() {
+    const { user } = this.state;
+    if (!user.emailVerified) {
+      this.props.verifyEmail();
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -34,27 +39,6 @@ class User extends Component {
         user: nextProps.user
       });
     }
-  }
-
-  sendEmailVerification() {
-    const { user } = this.props;
-    user.sendEmailVerification().then(() => {
-      this.setState({ error: 'email sent' });
-    }).catch(error => {
-      // An error happened.
-      this.setState({ error: error.message });
-    });
-  }
-
-  resetPassword() {
-    const { user } = this.state;
-    auth.sendPasswordResetEmail(user.email).then(() => {
-      // Email sent.
-      this.setState({ error: 'email sent' });
-    }).catch(function(error) {
-      // An error happened.
-      this.setState({ error: error.message });
-    });
   }
 
   // verifyPhoneNumber() {
@@ -67,49 +51,53 @@ class User extends Component {
   // }
 
   render() {
-    const { signOut, error } = this.props;
+    const { signOut, error, sendPasswordResetEmail } = this.props;
     const { posts, user } = this.state;
-    const isEmailVerified = user && user.emailVerified;
-    console.log(user);
     return (
       <View style={styles.container}>
         <Avatar
           size='large'
           rounded
-          source={{ url: user.photoURL }}
-        />
-        <Text>{user.name}</Text>
-        <Text>{user.email}</Text>
-        <Text>email verified: {isEmailVerified.toString()}</Text>
-        {isEmailVerified ? null : (
-          <Button
-            title='email verify'
-            onPress={this.sendEmailVerification}
-          />
-        )}
-        <Button
-          ref={(ref) => {
-            if (ref) {
-              this.verifyPhoneNumberButton = ref;
-            }
+          source={{
+            url: user.photoURL
           }}
-          title='phone verify'
-          onPress={this.verifyPhoneNumber}
         />
-        <Button
-          title='reset password'
-          onPress={this.resetPassword}
-        />
-        <Button
-          title='sign out'
-          onPress={signOut}
-        />
-        {posts ? posts.map((post) => (
-          <Text key={post.id}>
-            {post.data().text}
-          </Text>
-        )) : null}
-        {error ? <Text>{error}</Text> : null}
+        <Text>{user.email}</Text>
+        <View
+          style={{
+            width: '100%'
+          }}
+        >
+          {user.emailVerified ? null : (
+            <Button
+              title='Email verification'
+              onPress={this.sendEmailVerification}
+            />
+          )}
+          <Button
+            ref={(ref) => {
+              if (ref) {
+                this.verifyPhoneNumberButton = ref;
+              }
+            }}
+            title='Phone verification'
+            onPress={this.verifyPhoneNumber}
+          />
+          <Button
+            title='Reset password'
+            onPress={sendPasswordResetEmail}
+          />
+          <Button
+            title='Sign out'
+            onPress={signOut}
+          />
+          {posts ? posts.map((post) => (
+            <Text key={post.id}>
+              {post.data().text}
+            </Text>
+          )) : null}
+          {error ? <Text>{error}</Text> : null}
+        </View>
       </View>
     );
   }
@@ -121,7 +109,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  signOut
+  signOut,
+  verifyEmail,
+  sendPasswordResetEmail
 };
 
 export default connect(
