@@ -9,6 +9,7 @@ import { signOut, sendPasswordResetEmail, verifyEmail } from '../redux';
 class User extends Component {
   constructor(props) {
     super(props);
+    this.goToList = this.goToList.bind(this);
     const { user } = props;
     // db.collection('/posts')
     //   .where('author', '==', user.uid)
@@ -39,6 +40,11 @@ class User extends Component {
         user: nextProps.user
       });
     }
+  }
+
+  goToList() {
+    const { navigation } = this.props;
+    navigation.navigate('List');
   }
 
   // verifyPhoneNumber() {
@@ -90,6 +96,10 @@ class User extends Component {
           <Button
             title='Sign out'
             onPress={signOut}
+          />
+          <Button
+            title="Go to list"
+            onPress={this.goToList}
           />
           {posts ? posts.map((post) => (
             <Text key={post.id}>

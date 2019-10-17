@@ -9,6 +9,7 @@ import { store } from './redux'
 // screens
 import Login from './screens/Login';
 import User from './screens/User';
+import List from './screens/List';
 
 const mapStateToProps = state => ({
   user: state.user.data
@@ -27,6 +28,12 @@ const AppNavigator = createAppContainer(createStackNavigator(
       navigationOptions:  {
         title: 'User page',
         headerLeft: null
+      }
+    },
+    List: {
+      screen: List,
+      navigationOptions:  {
+        title: 'List'
       }
     }
   }

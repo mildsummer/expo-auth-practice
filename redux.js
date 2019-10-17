@@ -1,9 +1,10 @@
 import { combineReducers, createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
-import firebase, { auth } from './utils/firebase';
+import { Alert } from 'react-native';
 import * as Google from 'expo-google-app-auth';
 import { GOOGLE_AUTH_IOS_CLIENT_ID } from 'react-native-dotenv';
-import {Alert} from "react-native";
+import firebase, { auth, db } from './utils/firebase';
+import setDummyData from './utils/setDummyData';
 
 export const signIn = (email, password) => (dispatch) => {
   dispatch({
@@ -70,10 +71,7 @@ export const signOut = () => (dispatch) => {
   });
   auth.signOut()
     .catch(({ message}) => {
-      dispatch({
-        type: 'FAIL_SIGN_OUT',
-        message
-      });
+      Alert.alert(message);
     });
 };
 
@@ -123,10 +121,35 @@ export const verifyEmail = () => (dispatch) => {
   }
 };
 
+export const getPosts = () => (dispatch) => {
+  const user = store.getState().user.data;
+  if (user) {
+    db.collection('/posts')
+      .where('author', '==', user.uid)
+      .get()
+      .then((querySnapshot) => {
+        dispatch({
+          type: 'SUCCESS_GET_POSTS',
+          posts: querySnapshot.docs
+        });
+
+        // dummy
+        if (!querySnapshot.docs.length) {
+          setDummyData(user).catch((error) => {
+            console.log(error);
+          });
+        }
+      })
+      .catch(({ message }) => {
+        Alert.alert(message);
+      });
+  }
+};
+
 const INITIAL_STATE = {
   data: null,
   authError: null,
-  signOutError: null
+  posts: null
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -139,8 +162,8 @@ const reducer = (state = INITIAL_STATE, action) => {
       return { ...state, data: null };
     case 'FAIL_AUTH_USER':
       return { ...state, authError: action.message };
-    case 'FAIL_SIGN_OUT':
-      return { ...state, signOutError: action.message };
+    case 'SUCCESS_GET_POSTS':
+      return { ...state, posts: action.posts };
     default:
       return state;
   }
