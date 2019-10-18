@@ -6,7 +6,6 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-google-app-auth';
 import { GOOGLE_AUTH_IOS_CLIENT_ID, CAPTCHA_URL_BASE } from 'react-native-dotenv';
 import firebase, { auth, db } from './utils/firebase';
-import setDummyData from './utils/setDummyData';
 
 export const signIn = (email, password) => (dispatch) => {
   dispatch({
@@ -34,7 +33,7 @@ export const authUser = (email, password) => (dispatch) => {
     });
 };
 
-export const authGoogle = () => async (dispatch) => {
+export const authGoogle = () => (dispatch) => {
   dispatch({
     type: 'START_AUTH_USER'
   });
@@ -69,7 +68,7 @@ export const authGoogle = () => async (dispatch) => {
 
 export const signOut = () => (dispatch) => {
   dispatch({
-    type: 'START_AUTH_USER'
+    type: 'START_SIGN_OUT_USER'
   });
   auth.signOut()
     .catch(({ message}) => {
@@ -123,7 +122,7 @@ export const verifyEmail = () => (dispatch) => {
   }
 };
 
-export const verifyPhoneNumber = () => (dispatch) => {
+export const verifyPhoneNumber = (phoneNumber) => (dispatch) => {
   const captchaUrl = `${CAPTCHA_URL_BASE}?appurl=${Linking.makeUrl('')}`;
   const listener = ({ url }) => {
     WebBrowser.dismissBrowser();
@@ -135,7 +134,7 @@ export const verifyPhoneNumber = () => (dispatch) => {
         type: 'recaptcha',
         verify: () => Promise.resolve(token)
       };
-      firebase.auth().signInWithPhoneNumber('+818066552322', captchaVerifier).then((confirmationResult) => {
+      firebase.auth().signInWithPhoneNumber(phoneNumber, captchaVerifier).then((confirmationResult) => {
         dispatch({
           type: 'CONFIRM_PHONE_NUMBER',
           phoneNumberConfirmation: confirmationResult
@@ -157,7 +156,10 @@ export const confirmPhoneNumberVerification = (verificationCode) => (dispatch) =
   const user = state.data;
   const credential = firebase.auth.PhoneAuthProvider.credential(phoneNumberConfirmation.verificationId, verificationCode);
   user.linkWithCredential(credential).then((userCredential) => {
-    console.log('credential linked', userCredential.user);
+    dispatch({
+      type: 'SUCCESS_CONFIRM_PHONE_NUMBER',
+      user: userCredential.user
+    });
   }).catch(function({ message }) {
     Alert.alert(message);
   });
@@ -227,6 +229,12 @@ const reducer = (state = INITIAL_STATE, action) => {
       return {
         ...state,
         phoneNumberConfirmation: action.phoneNumberConfirmation
+      };
+    case 'SUCCESS_CONFIRM_PHONE_NUMBER':
+      return {
+        ...state,
+        phoneNumberConfirmation: null,
+        data: action.user
       };
     default:
       return state;

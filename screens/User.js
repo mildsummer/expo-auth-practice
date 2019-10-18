@@ -9,11 +9,14 @@ class User extends Component {
   constructor(props) {
     super(props);
     this.goToList = this.goToList.bind(this);
+    this.onChangePhoneNumber = this.onChangePhoneNumber.bind(this);
     this.onChangePhoneNumberVerificationCode = this.onChangePhoneNumberVerificationCode.bind(this);
+    this.verifyPhoneNumber = this.verifyPhoneNumber.bind(this);
     this.confirmPhoneNumberVerification = this.confirmPhoneNumberVerification.bind(this);
     const { user } = props;
     this.state = {
       user,
+      phoneNumber: null,
       phoneNumberVerificationCode: null
     };
   }
@@ -38,10 +41,20 @@ class User extends Component {
     navigation.navigate('List');
   }
 
+  verifyPhoneNumber() {
+    const { verifyPhoneNumber } = this.props;
+    const { phoneNumber } = this.state;
+    verifyPhoneNumber(phoneNumber);
+  }
+
   confirmPhoneNumberVerification() {
     const { phoneNumberVerificationCode } = this.state;
     const { confirmPhoneNumberVerification } = this.props;
     confirmPhoneNumberVerification(phoneNumberVerificationCode);
+  }
+
+  onChangePhoneNumber(phoneNumber) {
+    this.setState({ phoneNumber })
   }
 
   onChangePhoneNumberVerificationCode(phoneNumberVerificationCode) {
@@ -49,8 +62,8 @@ class User extends Component {
   }
 
   render() {
-    const { signOut, error, verifyEmail, phoneNumberConfirmation, sendPasswordResetEmail, verifyPhoneNumber } = this.props;
-    const { user, phoneNumberVerificationCode } = this.state;
+    const { signOut, verifyEmail, phoneNumberConfirmation, sendPasswordResetEmail } = this.props;
+    const { user, phoneNumber, phoneNumberVerificationCode } = this.state;
     return (
       <View style={styles.container}>
         <Avatar
@@ -66,6 +79,13 @@ class User extends Component {
             marginBottom: 16
           }}
         >{user.email}</Text>
+        {user.phoneNumber ? (
+          <Text
+            style={{
+              marginBottom: 16
+            }}
+          >{user.phoneNumber}</Text>
+        ) : null}
         <View
           style={{
             width: '100%',
@@ -80,13 +100,15 @@ class User extends Component {
               onPress={verifyEmail}
             />
           )}
-          <Button
-            style={{
-              marginBottom: 16
-            }}
-            title='Phone verification'
-            onPress={verifyPhoneNumber}
-          />
+          {user.phoneNumber ? null : (
+            <Button
+              style={{
+                marginBottom: 16
+              }}
+              title='Phone verification'
+              onPress={this.verifyPhoneNumber}
+            />
+          )}
           <Button
             style={{
               marginBottom: 16
@@ -105,6 +127,30 @@ class User extends Component {
             title="Go to list"
             onPress={this.goToList}
           />
+          {user.phoneNumber || phoneNumberConfirmation ? null : (
+            <View
+              style={{
+                marginTop: 16
+              }}
+            >
+              <Input
+                autoCapitalize='none'
+                containerStyle={{
+                  paddingLeft: 0,
+                  paddingRight: 0,
+                  marginBottom: 32
+                }}
+                label='Your phone number'
+                value={phoneNumber}
+                onChangeText={this.onChangePhoneNumber}
+              />
+              <Button
+                title='OK'
+                onPress={this.verifyPhoneNumber}
+                disabled={!phoneNumber}
+              />
+            </View>
+          )}
           {phoneNumberConfirmation ? (
             <View
               style={{
@@ -129,7 +175,6 @@ class User extends Component {
               />
             </View>
           ) : null}
-          {error ? <Text>{error}</Text> : null}
         </View>
       </View>
     );
