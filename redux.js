@@ -121,24 +121,40 @@ export const verifyEmail = () => (dispatch) => {
   }
 };
 
-export const getPosts = () => (dispatch) => {
+export const getPosts = (lengthPerPage, startAfter) => (dispatch) => {
   const user = store.getState().user.data;
   if (user) {
-    db.collection('/posts')
-      .where('author', '==', user.uid)
+    db.collection('/users')
+      .doc(user.uid)
       .get()
-      .then((querySnapshot) => {
+      .then((userSnapshot) => {
         dispatch({
-          type: 'SUCCESS_GET_POSTS',
-          posts: querySnapshot.docs
+          type: 'SUCCESS_GET_USER',
+          data: userSnapshot.data()
         });
-
-        // dummy
-        if (!querySnapshot.docs.length) {
-          setDummyData(user).catch((error) => {
-            console.log(error);
-          });
+        let ref = db.collection('/posts')
+          .where('author', '==', user.uid)
+          .limit(lengthPerPage);
+        if (startAfter) {
+          ref = ref.startAfter(startAfter);
         }
+        ref.get()
+          .then((querySnapshot) => {
+            dispatch({
+              type: 'SUCCESS_GET_POSTS',
+              posts: querySnapshot.docs
+            });
+
+            // dummy
+            if (!querySnapshot.docs.length) {
+              setDummyData(user).catch((error) => {
+                console.log(error);
+              });
+            }
+          })
+          .catch(({ message }) => {
+            Alert.alert(message);
+          });
       })
       .catch(({ message }) => {
         Alert.alert(message);
@@ -148,6 +164,7 @@ export const getPosts = () => (dispatch) => {
 
 const INITIAL_STATE = {
   data: null,
+  dbData: null,
   authError: null,
   posts: null
 };
@@ -162,8 +179,13 @@ const reducer = (state = INITIAL_STATE, action) => {
       return { ...state, data: null };
     case 'FAIL_AUTH_USER':
       return { ...state, authError: action.message };
+    case 'SUCCESS_GET_USER':
+      return { ...state, dbData: action.data };
     case 'SUCCESS_GET_POSTS':
-      return { ...state, posts: action.posts };
+      return {
+        ...state,
+        posts: (state.posts || []).concat(action.posts)
+      };
     default:
       return state;
   }

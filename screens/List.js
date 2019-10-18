@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, FlatList, Text } from 'react-native';
+import { View, FlatList, Text } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { getPosts } from '../redux';
@@ -7,12 +7,20 @@ import { getPosts } from '../redux';
 class List extends Component {
   constructor(props) {
     super(props);
-    const { user, getPosts } = props;
-    getPosts();
+    const { user } = props;
+    this.startLoading = this.startLoading.bind(this);
     this.state = {
       error: null,
-      user
+      user,
+      isLoading: false
     };
+  }
+
+  componentDidMount() {
+    const { posts } = this.props;
+    if (!posts) {
+      this.startLoading();
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -21,12 +29,32 @@ class List extends Component {
         user: nextProps.user
       });
     }
+    if (nextProps.posts !== this.props.posts) {
+      this.setState({
+        isLoading: false
+      })
+    }
+  }
+
+  startLoading() {
+    const { posts, getPosts } = this.props;
+    console.log('start loading');
+    this.setState({
+      isLoading: true
+    }, () => {
+      getPosts(20, (posts && posts.length) ? posts[posts.length - 1] : null);
+    });
   }
 
   render() {
-    const { posts, error } = this.props;
+    const { dbUser, posts, error } = this.props;
+    const { isLoading } = this.state;
+    if (posts) {
+      console.log('postsSize', posts.length, dbUser.postsSize);
+    }
+    const isLoadingEnabled = !isLoading && posts && posts.length < dbUser.postsSize;
     return (
-      <SafeAreaView
+      <View
         style={{
           flex: 1,
           height: '100%'
@@ -42,16 +70,19 @@ class List extends Component {
                 bottomDivider
               />
             )}
+            onEndReached={isLoadingEnabled ? this.startLoading : null}
+            onEndReachedThreshold={1}
           />
         ) : null}
         {error ? <Text>{error}</Text> : null}
-      </SafeAreaView>
+      </View>
     );
   }
 }
 
 const mapStateToProps = state => ({
   user: state.user.data,
+  dbUser: state.user.dbData,
   posts: state.user.posts,
   error: state.user.signOutError
 });

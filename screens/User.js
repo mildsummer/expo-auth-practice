@@ -59,6 +59,7 @@ class User extends Component {
   render() {
     const { signOut, error, sendPasswordResetEmail } = this.props;
     const { posts, user } = this.state;
+    console.log(user);
     return (
       <View style={styles.container}>
         <Avatar
