@@ -112,6 +112,18 @@ export const verifyEmail = () => (dispatch) => {
           onPress: () => {
             user.sendEmailVerification().then(() => {
               Alert.alert('The email has been sent.');
+              db.collection('/users')
+                .doc(user.uid)
+                .onSnapshot((docSnapshot) => {
+                  const dbUser = docSnapshot.data();
+                  if (dbUser && dbUser.emailVerified) {
+                    Alert.alert('Email verification has succeeded.');
+                    dispatch({
+                      type: 'SUCCESS_GET_USER',
+                      data: dbUser
+                    });
+                  }
+                });
             }).catch(function({ message }) {
               Alert.alert(message);
             });
@@ -219,6 +231,7 @@ const reducer = (state = INITIAL_STATE, action) => {
     case 'FAIL_AUTH_USER':
       return { ...state, authError: action.message };
     case 'SUCCESS_GET_USER':
+      console.log(action.data);
       return { ...state, dbData: action.data };
     case 'SUCCESS_GET_POSTS':
       return {

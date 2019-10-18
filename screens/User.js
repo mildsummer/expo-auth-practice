@@ -62,7 +62,7 @@ class User extends Component {
   }
 
   render() {
-    const { signOut, verifyEmail, phoneNumberConfirmation, sendPasswordResetEmail } = this.props;
+    const { dbUser, signOut, verifyEmail, phoneNumberConfirmation, sendPasswordResetEmail } = this.props;
     const { user, phoneNumber, phoneNumberVerificationCode } = this.state;
     return (
       <View style={styles.container}>
@@ -91,7 +91,7 @@ class User extends Component {
             width: '100%',
           }}
         >
-          {user.emailVerified ? null : (
+          {user.emailVerified || (dbUser && dbUser.emailVerified) ? null : (
             <Button
               style={{
                 marginBottom: 16
@@ -183,6 +183,7 @@ class User extends Component {
 
 const mapStateToProps = state => ({
   user: state.user.data,
+  dbUser: state.user.dbData,
   phoneNumberConfirmation: state.user.phoneNumberConfirmation
 });
 
