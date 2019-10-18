@@ -9,44 +9,20 @@ Expo + Firebase Authenticationのサンプルです。
 
 Firebase側のコードは[こちら](https://github.com/mildsummer/expo-auth-practice-firebase)
 
-### Install
-
-```
-npm install
-```
-or
-```
-yarn
-```
-
-### Usage
-
-#### Run the app
-
-```
-npm run start
-```
-or
-```
-yarn run start
-```
-
-#### Develop the app for iOS
-
-```
-npm run ios
-```
-or
-```
-yarn run ios
-```
-
-#### Develop the app for Android
-
-```
-npm run android
-```
-or
-```
-yarn run android
+## 使い方
+インストールと実行に関しては通常のExpoプロジェクトと同じです。  
+実行には環境設定が必要です。
+Firebaseプロジェクトを作成し、上記の記事を参考に`.env`ファイルを作成してください。
+  
+```text:.env
+GOOGLE_AUTH_IOS_CLIENT_ID=<clientId>
+FIREBASE_API_KEY=<apiKey>
+FIREBASE_AUTH_DOMAIN=<authDomain>
+FIREBASE_DATABASE_URL=<databaseURL>
+FIREBASE_PROJECT_ID=<projectId>
+FIREBASE_STORAGE_BUCKET=<storageBucket>
+FIREBASE_MESSAGING_SENDER_ID=<messagingSenderId>
+FIREBASE_APP_ID=<appId>
+FIREBASE_MEASUREMENT_ID=<measurementId>
+CAPTCHA_URL_BASE=<url of captcha html>
 ```
