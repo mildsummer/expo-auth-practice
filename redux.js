@@ -134,7 +134,7 @@ export const verifyPhoneNumber = (phoneNumber) => (dispatch) => {
         type: 'recaptcha',
         verify: () => Promise.resolve(token)
       };
-      firebase.auth().signInWithPhoneNumber(phoneNumber, captchaVerifier).then((confirmationResult) => {
+      auth.signInWithPhoneNumber(phoneNumber, captchaVerifier).then((confirmationResult) => {
         dispatch({
           type: 'CONFIRM_PHONE_NUMBER',
           phoneNumberConfirmation: confirmationResult
