@@ -1,29 +1,21 @@
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
-import { Button, Avatar } from 'react-native-elements';
+import { Button, Avatar, Input } from 'react-native-elements';
 import { connect } from 'react-redux';
 // import { db } from '../utils/firebase';
 import styles from '../styles/main';
-import { signOut, sendPasswordResetEmail, verifyEmail } from '../redux';
+import { signOut, sendPasswordResetEmail, verifyEmail, verifyPhoneNumber, confirmPhoneNumberVerification } from '../redux';
 
 class User extends Component {
   constructor(props) {
     super(props);
     this.goToList = this.goToList.bind(this);
+    this.onChangePhoneNumberVerificationCode = this.onChangePhoneNumberVerificationCode.bind(this);
+    this.confirmPhoneNumberVerification = this.confirmPhoneNumberVerification.bind(this);
     const { user } = props;
-    // db.collection('/posts')
-    //   .where('author', '==', user.uid)
-    //   .get()
-    //   .then((querySnapshot) => {
-    //     this.setState({ posts: querySnapshot.docs });
-    //   })
-    //   .catch((error) => {
-    //     this.setState({ error: error.message });
-    //   });
     this.state = {
-      error: null,
-      posts: null,
-      user
+      user,
+      phoneNumberVerificationCode: null
     };
   }
 
@@ -47,19 +39,19 @@ class User extends Component {
     navigation.navigate('List');
   }
 
-  // verifyPhoneNumber() {
-  //   auth.signInWithPhoneNumber('', this.recaptchaVerifier)
-  //     .then(confirmationResult => {
-  //       this.confirmationResult = confirmationResult;
-  //     }).catch(error => {
-  //       this.setState({ error: error.message });
-  //     });
-  // }
+  confirmPhoneNumberVerification() {
+    const { phoneNumberVerificationCode } = this.state;
+    const { confirmPhoneNumberVerification } = this.props;
+    confirmPhoneNumberVerification(phoneNumberVerificationCode);
+  }
+
+  onChangePhoneNumberVerificationCode(phoneNumberVerificationCode) {
+    this.setState({ phoneNumberVerificationCode });
+  }
 
   render() {
-    const { signOut, error, sendPasswordResetEmail } = this.props;
-    const { posts, user } = this.state;
-    console.log(user);
+    const { signOut, error, verifyEmail, phoneNumberConfirmation, sendPasswordResetEmail, verifyPhoneNumber } = this.props;
+    const { user, phoneNumberVerificationCode } = this.state;
     return (
       <View style={styles.container}>
         <Avatar
@@ -78,17 +70,12 @@ class User extends Component {
           {user.emailVerified ? null : (
             <Button
               title='Email verification'
-              onPress={this.sendEmailVerification}
+              onPress={verifyEmail}
             />
           )}
           <Button
-            ref={(ref) => {
-              if (ref) {
-                this.verifyPhoneNumberButton = ref;
-              }
-            }}
             title='Phone verification'
-            onPress={this.verifyPhoneNumber}
+            onPress={verifyPhoneNumber}
           />
           <Button
             title='Reset password'
@@ -102,11 +89,26 @@ class User extends Component {
             title="Go to list"
             onPress={this.goToList}
           />
-          {posts ? posts.map((post) => (
-            <Text key={post.id}>
-              {post.data().text}
-            </Text>
-          )) : null}
+          {phoneNumberConfirmation ? (
+            <View>
+              <Input
+                autoCapitalize='none'
+                containerStyle={{
+                  paddingLeft: 0,
+                  paddingRight: 0,
+                  marginBottom: 32
+                }}
+                label='Enter the verification code'
+                value={phoneNumberVerificationCode}
+                onChangeText={this.onChangePhoneNumberVerificationCode}
+              />
+              <Button
+                title='OK'
+                onPress={this.confirmPhoneNumberVerification}
+                disabled={!phoneNumberVerificationCode}
+              />
+            </View>
+          ) : null}
           {error ? <Text>{error}</Text> : null}
         </View>
       </View>
@@ -116,13 +118,15 @@ class User extends Component {
 
 const mapStateToProps = state => ({
   user: state.user.data,
-  error: state.user.signOutError
+  phoneNumberConfirmation: state.user.phoneNumberConfirmation
 });
 
 const mapDispatchToProps = {
   signOut,
   verifyEmail,
-  sendPasswordResetEmail
+  verifyPhoneNumber,
+  sendPasswordResetEmail,
+  confirmPhoneNumberVerification
 };
 
 export default connect(

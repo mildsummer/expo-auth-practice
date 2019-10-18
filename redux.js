@@ -1,8 +1,10 @@
 import { combineReducers, createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import { Alert } from 'react-native';
+import { Linking } from 'expo'
+import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-google-app-auth';
-import { GOOGLE_AUTH_IOS_CLIENT_ID } from 'react-native-dotenv';
+import { GOOGLE_AUTH_IOS_CLIENT_ID, CAPTCHA_URL_BASE } from 'react-native-dotenv';
 import firebase, { auth, db } from './utils/firebase';
 import setDummyData from './utils/setDummyData';
 
@@ -102,7 +104,7 @@ export const verifyEmail = () => (dispatch) => {
   const user = store.getState().user.data;
   if (user) {
     Alert.alert(
-      'Email verification is required',
+      'Email verification',
       'We will send a verification link to your email account.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -119,6 +121,46 @@ export const verifyEmail = () => (dispatch) => {
       ]
     );
   }
+};
+
+export const verifyPhoneNumber = () => (dispatch) => {
+  const captchaUrl = `${CAPTCHA_URL_BASE}?appurl=${Linking.makeUrl('')}`;
+  const listener = ({ url }) => {
+    WebBrowser.dismissBrowser();
+    const tokenEncoded = Linking.parse(url).queryParams['token'];
+    if (tokenEncoded) {
+      const token = decodeURIComponent(tokenEncoded);
+      //fake firebase.auth.ApplicationVerifier
+      const captchaVerifier = {
+        type: 'recaptcha',
+        verify: () => Promise.resolve(token)
+      };
+      firebase.auth().signInWithPhoneNumber('+818066552322', captchaVerifier).then((confirmationResult) => {
+        dispatch({
+          type: 'CONFIRM_PHONE_NUMBER',
+          phoneNumberConfirmation: confirmationResult
+        });
+      }).catch(function({ message }) {
+        Alert.alert(message);
+      });
+    }
+  };
+  Linking.addEventListener('url', listener);
+  WebBrowser.openBrowserAsync(captchaUrl).then(() => {
+    Linking.removeEventListener('url', listener);
+  });
+};
+
+export const confirmPhoneNumberVerification = (verificationCode) => (dispatch) => {
+  const state = store.getState().user;
+  const phoneNumberConfirmation = state.phoneNumberConfirmation;
+  const user = state.data;
+  const credential = firebase.auth.PhoneAuthProvider.credential(phoneNumberConfirmation.verificationId, verificationCode);
+  user.linkWithCredential(credential).then((userCredential) => {
+    console.log('credential linked', userCredential.user);
+  }).catch(function({ message }) {
+    Alert.alert(message);
+  });
 };
 
 export const getPosts = (lengthPerPage, startAfter) => (dispatch) => {
@@ -166,7 +208,8 @@ const INITIAL_STATE = {
   data: null,
   dbData: null,
   authError: null,
-  posts: null
+  posts: null,
+  phoneNumberConfirmation: null
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -186,6 +229,11 @@ const reducer = (state = INITIAL_STATE, action) => {
         ...state,
         posts: (state.posts || []).concat(action.posts)
       };
+    case 'CONFIRM_PHONE_NUMBER':
+      return {
+        ...state,
+        phoneNumberConfirmation: action.phoneNumberConfirmation
+      };
     default:
       return state;
   }
@@ -198,6 +246,7 @@ export const reducers = combineReducers({
 export const store = createStore(reducers, applyMiddleware(thunk));
 
 auth.onAuthStateChanged((user) => {
+  console.log('auth state changed', user);
   const current = store.getState().user.data;
   if (!current && user) {
     store.dispatch({

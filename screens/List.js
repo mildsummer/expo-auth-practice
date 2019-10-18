@@ -38,7 +38,6 @@ class List extends Component {
 
   startLoading() {
     const { posts, getPosts } = this.props;
-    console.log('start loading');
     this.setState({
       isLoading: true
     }, () => {
@@ -49,9 +48,6 @@ class List extends Component {
   render() {
     const { dbUser, posts, error } = this.props;
     const { isLoading } = this.state;
-    if (posts) {
-      console.log('postsSize', posts.length, dbUser.postsSize);
-    }
     const isLoadingEnabled = !isLoading && posts && posts.length < dbUser.postsSize;
     return (
       <View
