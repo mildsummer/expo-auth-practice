@@ -62,7 +62,8 @@ class List extends Component {
             keyExtractor={(item) => (item.id)}
             renderItem={({ item }) => (
               <ListItem
-                title={item.data().text}
+                title={item.data().order}
+                subtitle={item.data().text}
                 bottomDivider
               />
             )}

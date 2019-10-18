@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Text, View } from 'react-native';
 import { Button, Avatar, Input } from 'react-native-elements';
 import { connect } from 'react-redux';
-// import { db } from '../utils/firebase';
 import styles from '../styles/main';
 import { signOut, sendPasswordResetEmail, verifyEmail, verifyPhoneNumber, confirmPhoneNumberVerification } from '../redux';
 
@@ -61,27 +60,44 @@ class User extends Component {
             url: user.photoURL
           }}
         />
-        <Text>{user.email}</Text>
+        <Text
+          style={{
+            marginTop: 16,
+            marginBottom: 16
+          }}
+        >{user.email}</Text>
         <View
           style={{
-            width: '100%'
+            width: '100%',
           }}
         >
           {user.emailVerified ? null : (
             <Button
+              style={{
+                marginBottom: 16
+              }}
               title='Email verification'
               onPress={verifyEmail}
             />
           )}
           <Button
+            style={{
+              marginBottom: 16
+            }}
             title='Phone verification'
             onPress={verifyPhoneNumber}
           />
           <Button
+            style={{
+              marginBottom: 16
+            }}
             title='Reset password'
             onPress={sendPasswordResetEmail}
           />
           <Button
+            style={{
+              marginBottom: 16
+            }}
             title='Sign out'
             onPress={signOut}
           />
@@ -90,7 +106,11 @@ class User extends Component {
             onPress={this.goToList}
           />
           {phoneNumberConfirmation ? (
-            <View>
+            <View
+              style={{
+                marginTop: 16
+              }}
+            >
               <Input
                 autoCapitalize='none'
                 containerStyle={{

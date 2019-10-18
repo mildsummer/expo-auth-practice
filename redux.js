@@ -176,6 +176,7 @@ export const getPosts = (lengthPerPage, startAfter) => (dispatch) => {
         });
         let ref = db.collection('/posts')
           .where('author', '==', user.uid)
+          .orderBy('order')
           .limit(lengthPerPage);
         if (startAfter) {
           ref = ref.startAfter(startAfter);
@@ -186,13 +187,6 @@ export const getPosts = (lengthPerPage, startAfter) => (dispatch) => {
               type: 'SUCCESS_GET_POSTS',
               posts: querySnapshot.docs
             });
-
-            // dummy
-            if (!querySnapshot.docs.length) {
-              setDummyData(user).catch((error) => {
-                console.log(error);
-              });
-            }
           })
           .catch(({ message }) => {
             Alert.alert(message);
