@@ -91,7 +91,7 @@ class User extends Component {
             width: '100%',
           }}
         >
-          {user.emailVerified || (dbUser && dbUser.emailVerified) ? null : (
+          {user.emailVerified || (dbUser && dbUser.emailVerifiedAt) ? null : (
             <Button
               style={{
                 marginBottom: 16

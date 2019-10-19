@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import { Linking } from 'expo'
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-google-app-auth';
-import { GOOGLE_AUTH_IOS_CLIENT_ID, CAPTCHA_URL_BASE } from 'react-native-dotenv';
+import { GOOGLE_AUTH_IOS_CLIENT_ID, CAPTCHA_URL_BASE, FIREBASE_AUTH_DOMAIN } from 'react-native-dotenv';
 import firebase, { auth, db } from './utils/firebase';
 
 export const signIn = (email, password) => (dispatch) => {
@@ -110,17 +110,20 @@ export const verifyEmail = () => (dispatch) => {
         {
           text: 'OK',
           onPress: () => {
-            user.sendEmailVerification().then(() => {
+            user.sendEmailVerification({ url: Linking.makeUrl(FIREBASE_AUTH_DOMAIN) }).then(() => {
               Alert.alert('The email has been sent.');
               db.collection('/users')
                 .doc(user.uid)
                 .onSnapshot((docSnapshot) => {
                   const dbUser = docSnapshot.data();
-                  if (dbUser && dbUser.emailVerified) {
+                  if (dbUser && dbUser.emailVerifiedAt) {
                     Alert.alert('Email verification has succeeded.');
                     dispatch({
                       type: 'SUCCESS_GET_USER',
                       data: dbUser
+                    });
+                    user.reload().then(() => {
+                      console.log(user);
                     });
                   }
                 });
