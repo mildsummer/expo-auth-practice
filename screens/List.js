@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, FlatList, Text } from 'react-native';
+import { View, FlatList, Text, ActivityIndicator } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { getPosts } from '../redux';
@@ -37,6 +37,7 @@ class List extends Component {
   }
 
   startLoading() {
+    console.log('start loading');
     const { posts, getPosts } = this.props;
     this.setState({
       isLoading: true
@@ -48,7 +49,18 @@ class List extends Component {
   render() {
     const { dbUser, posts, error } = this.props;
     const { isLoading } = this.state;
-    const isLoadingEnabled = !isLoading && posts && posts.length < dbUser.postsSize;
+    const isMore = posts && posts.length < dbUser.postsSize;
+    const isLoadingEnabled = !isLoading && isMore;
+    const activityIndicator = isMore ? (
+      <ActivityIndicator
+        animating
+        size="large"
+        style={{
+          marginTop: 16,
+          marginBottom: 16
+        }}
+      />
+    ) : null;
     return (
       <View
         style={{
@@ -62,13 +74,14 @@ class List extends Component {
             keyExtractor={(item) => (item.id)}
             renderItem={({ item }) => (
               <ListItem
-                title={item.data().order}
+                title={item.data().order.toString()}
                 subtitle={item.data().text}
                 bottomDivider
               />
             )}
             onEndReached={isLoadingEnabled ? this.startLoading : null}
-            onEndReachedThreshold={1}
+            onEndReachedThreshold={0}
+            ListFooterComponent={activityIndicator}
           />
         ) : null}
         {error ? <Text>{error}</Text> : null}
