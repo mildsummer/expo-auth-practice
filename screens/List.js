@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, FlatList, Text, ActivityIndicator } from 'react-native';
+import { View, FlatList, ActivityIndicator } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { getPosts } from '../redux';
@@ -7,11 +7,8 @@ import { getPosts } from '../redux';
 class List extends Component {
   constructor(props) {
     super(props);
-    const { user } = props;
     this.startLoading = this.startLoading.bind(this);
     this.state = {
-      error: null,
-      user,
       isLoading: false
     };
   }
@@ -24,11 +21,6 @@ class List extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.user && nextProps.user !== this.state.user) {
-      this.setState({
-        user: nextProps.user
-      });
-    }
     if (nextProps.posts !== this.props.posts) {
       this.setState({
         isLoading: false
@@ -37,7 +29,6 @@ class List extends Component {
   }
 
   startLoading() {
-    console.log('start loading');
     const { posts, getPosts } = this.props;
     this.setState({
       isLoading: true
@@ -47,7 +38,7 @@ class List extends Component {
   }
 
   render() {
-    const { dbUser, posts, error } = this.props;
+    const { dbUser, posts } = this.props;
     const { isLoading } = this.state;
     const isMore = posts && posts.length < dbUser.postsSize;
     const isLoadingEnabled = !isLoading && isMore;
@@ -84,17 +75,14 @@ class List extends Component {
             ListFooterComponent={activityIndicator}
           />
         ) : null}
-        {error ? <Text>{error}</Text> : null}
       </View>
     );
   }
 }
 
 const mapStateToProps = state => ({
-  user: state.user.data,
   dbUser: state.user.dbData,
-  posts: state.user.posts,
-  error: state.user.signOutError
+  posts: state.user.posts
 });
 
 const mapDispatchToProps = {

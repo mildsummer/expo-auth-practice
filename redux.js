@@ -180,34 +180,29 @@ export const confirmPhoneNumberVerification = (verificationCode) => (dispatch) =
   });
 };
 
-export const getPosts = (lengthPerPage, startAfter) => (dispatch) => {
+export const getPosts = (size, startAfter) => (dispatch) => {
   const user = store.getState().user.data;
   if (user) {
-    db.collection('/users')
-      .doc(user.uid)
-      .get()
+    const userRef = db.collection('/users').doc(user.uid);
+    userRef.get()
       .then((userSnapshot) => {
         dispatch({
           type: 'SUCCESS_GET_USER',
           data: userSnapshot.data()
         });
-        let ref = db.collection('/posts')
-          .where('author', '==', user.uid)
+        let postsRef = userRef.collection('/posts')
           .orderBy('order')
-          .limit(lengthPerPage);
+          .limit(size);
         if (startAfter) {
-          ref = ref.startAfter(startAfter);
+          postsRef = postsRef.startAfter(startAfter);
         }
-        ref.get()
-          .then((querySnapshot) => {
-            dispatch({
-              type: 'SUCCESS_GET_POSTS',
-              posts: querySnapshot.docs
-            });
-          })
-          .catch(({ message }) => {
-            Alert.alert(message);
-          });
+        return postsRef.get();
+      })
+      .then((querySnapshot) => {
+        dispatch({
+          type: 'SUCCESS_GET_POSTS',
+          posts: querySnapshot.docs
+        });
       })
       .catch(({ message }) => {
         Alert.alert(message);
